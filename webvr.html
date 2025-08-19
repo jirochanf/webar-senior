@@ -1,0 +1,136 @@
+<html lang="ja">
+  <!-- webvr 動画再生  vrの場合サムネイルが表示される -->
+  <head>
+    <title>12月22日　雪です</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--  スクリプトの呼び込み  -->
+    <script src="https://aframe.io/releases/1.1.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-event-set-component@5.0.0/dist/aframe-event-set-component.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
+    <script src="https://unpkg.com/aframe-html-shader@0.2.0/dist/aframe-html-shader.js"></script>
+
+    <script>
+      AFRAME.registerComponent("click-play", {
+        init: function () {
+          var v = document.querySelector("#vid");
+          let is_playing = false;
+          this.el.addEventListener("click", function (event) {
+            //クリック時の処理
+            //         v.play();
+            if (!is_playing) {
+              v.play();
+              is_playing = true;
+            } else {
+              v.pause();
+              location.href =
+                "https://youtu.be/XeZcFc1jD9E?si=T34Z7Hyxt43I9meK";
+              is_playing = false;
+            }
+          });
+        },
+      });
+    </script>
+
+    <!--  スタイル設定  -->
+    <style type="text/css">
+      .map {
+        width: 350px;
+        height: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <!--  a-frame シーン創出  -->
+    <a-scene
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: true"
+      cursor="fuse: false; rayOrigin: mouse"
+    >
+      <!--  360度画像を配置  -->
+
+      <a-sky
+        id="image-360"
+        src="https://cdn.glitch.global/801030b2-c9b0-456b-b230-55a67c0e4d73/R0010048.JPG?v=1703208558340"
+        rotation="0 0 0"
+        position="0 0 -20"
+      >
+      </a-sky>
+
+      <!-- 動画を規定  -->
+      <a-asset>
+        <video
+          id="vid"
+          src="https://cdn.glitch.global/801030b2-c9b0-456b-b230-55a67c0e4d73/glitch72.mp4?#t=0.001"
+          loop="true"
+          webkit-playsinline
+          playsinline
+          crossorigin
+          preload
+          autoplay
+        ></video>
+      </a-asset>
+
+      <!--  3Dモデルを規定・配置  -->
+      <a-entity
+        animation="property: object3D.position.x; to:-50; dir: alternate; dur: 5000; loop: true"
+      >
+        <a-gltf-model
+          src="https://cdn.glitch.global/b2e6788f-cdba-4890-a8e1-48007dcb5a28/toy_biplane.gltf?v=1690879159388"
+          position="3 7 -15"
+          rotation="0 90 180"
+          scale="0.25 0.25 0.25"
+          gesture-handler
+        ></a-gltf-model>
+      </a-entity>
+
+      <a-video
+        src="#vid"
+        click-play
+        position="10 3 -8"
+        width="5"
+        height="3"
+        rotation="0 0 0"
+      ></a-video>
+
+      <!--  中央画像を規定・配置   
+<a-image width="6" height="8" position="0 0 -15" rotation="0 0 0"  src="https://cdn.glitch.global/b2e6788f-cdba-4890-a8e1-48007dcb5a28/omoheba.jpg?v=1690879249999" 
+	 same_window="link: https://www.youtube.com/watch?v=SLthD0Vk5z8"></a-image>
+-->
+      <a-entity
+        mb-text
+        position="6 5 -8"
+        scale="5 5 5"
+        data-text="画像をクリックしてね"
+      ></a-entity>
+
+      <a-entity camera look-controls="reverseMouseDrag: true"></a-entity>
+      <!--  a-frameを終了  -->
+    </a-scene>
+  </body>
+
+  <script>
+    function aframeMutlByte() {
+      document.querySelectorAll("[mb-text]:empty").forEach((mb_text) => {
+        console.log(mb_text.dataset.text);
+        const text = mb_text.dataset.text;
+        const text_cnt = text.length;
+        const width = text_cnt * 1.4;
+        const height = 1.6;
+        let cvs = document.createElement("canvas");
+        let ctx = cvs.getContext("2d");
+        cvs.width = width * 100;
+        cvs.height = height * 100;
+        ctx.fillStyle = "rgb(255, 255, 253)";
+        ctx.font = "100pt Arial";
+        ctx.fillText(text, 0, 125);
+       const base64 = cvs.toDataURL("image/png");
+        mb_text.innerHTML = `<a-image scale="${width / 10} ${
+          height / 10
+        } 1" src="${base64}"></a-image>`;
+      });
+    }
+    aframeMutlByte();
+  </script>
+</html>

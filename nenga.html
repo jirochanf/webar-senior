@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<!-- 画像により動作を分ける　12/27 6:55 一応できるがダブルクリックになぜかなる alertハズとclickになる
+クリックできるが止まってしまう　ダブルクリックと評価か？  2023/12/30 7:59-->
+<html>
+  <head>
+    <title>Happy New Year on WebAR</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <script src="https://aframe.io/releases/1.1.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://unpkg.com/aframe-chromakey-material/dist/aframe-chromakey-material.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
+    <!-- 完成　サムネイルをクリックし動画再生一定時間後のページ遷移  -->
+    <script>
+      document.addEventListener("click", () => {
+        const video = document.getElementById("vid");
+        const arVideo = document.getElementById("vid");
+        const thumbnailImg = document.getElementById("pic");
+        console.log("click1");
+        thumbnailImg.setAttribute("visible", false);
+        arVideo.setAttribute("visible", true);
+        video.play();
+        window.setTimeout(function () {
+          //video.pause();
+          location.href = "https://youtu.be/XeZcFc1jD9E?si=T34Z7Hyxt43I9meK";
+        }, 30000);
+      });
+    </script>
+  </head>
+
+  <body>
+    <a-scene
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: true"
+      loading-screen="enabled: false;"
+      arjs="sourceType: webcam; debugUIEnabled: false;"
+      id="scene"
+      cursor="fuse: false; rayOrigin: mouse embedded"
+      gesture-detector
+    >
+      <!--使用するオブジェクト-->
+      <a-assets>
+        <video
+          id="vid"
+          src="https://cdn.glitch.global/801030b2-c9b0-456b-b230-55a67c0e4d73/glitch76.mp4?#t=0.001"
+          loop="false"
+          webkit-playsinline
+          playsinline
+          crossorigin
+        ></video>
+        <img
+          crossorigin="anonymous"
+          id="picstart"
+          src="https://cdn.glitch.global/801030b2-c9b0-456b-b230-55a67c0e4d73/start.png?v=1702729145576"
+        />
+        <img
+          crossorigin="anonymous"
+          id="seisaku"
+          src="https://cdn.glitch.global/801030b2-c9b0-456b-b230-55a67c0e4d73/akemiseisaku.png"
+        />
+        <img
+          crossorigin="anonymous"
+          id="zyousen"
+          src="https://cdn.glitch.global/801030b2-c9b0-456b-b230-55a67c0e4d73/zyosensam.png?v=1702729145576"
+        />
+        <img
+          crossorigin="anonymous"
+          id="haikei"
+          src="https://cdn.glitch.global/801030b2-c9b0-456b-b230-55a67c0e4d73/meishi2023.png"
+        />
+        <img
+          crossorigin="anonymous"
+          id="telop"
+          src="https://cdn.glitch.global/801030b2-c9b0-456b-b230-55a67c0e4d73/telop3.png"
+        />
+      </a-assets>
+
+      <!-- マウスカーソル -->
+      <a-entity id="mouseCursor" cursor="rayOrigin: mouse"></a-entity>
+
+      <!-- クリックしたいentityグループ  -->
+      <a-entity position="0 1.6 -2">
+        <a-entity position="0 -0.05 -3">
+          <a-image
+            hit-box
+            id="pic"
+            class="clickable"
+            src="#picstart"
+            position="0 0 -3"
+            width="4.5"
+            height="2"
+            visible="true"
+          >
+          </a-image>
+          <a-video
+            src="#vid"
+            position="0.1 0 -3.1"
+            rotation="0 0 0"
+            width="4.5"
+            height="2"
+            material="shader: chromakey; src: #vid; color:0.1 0.9 0.2"
+          >
+          </a-video>
+          <a-curvedimage
+            src="#haikei"
+            height="3.0"
+            position="2.5 3.2 -5"
+            radius="5.7"
+            theta-length="120"
+            theta-start="40"
+            rotation="0 100 0"
+            scale="0.8 0.8 0.8"
+          ></a-curvedimage>
+          <a-image
+            class="clickable"
+            src="#seisaku"
+            id="pic2"
+            position="3 0 -1"
+            width="2"
+            height="1"
+            visible="true"
+          ></a-image>
+        </a-entity>
+      </a-entity>
+
+      <a-entity position="0 1.6 -1">
+        <a-entity position="0 -0.05 -3" click-change> </a-entity>
+        <a-image
+            src="#telop"
+            position="0 -6 0"
+            width="4"
+            height="2"
+            visible="true"
+                 rotation="-120 0 -20"
+          ></a-image>
+      </a-entity>
+    </a-scene>
+  </body>
+
+  <!--画像によりクリック後の動作を分けるもうまくいかず   
+    <script>
+      AFRAME.registerComponent("hit-box", {
+        init: function () {
+          var v = document.querySelector("#vid");
+          //プレビュー画像
+          var pic = document.querySelector("#pic");
+          let is_playing = false;
+
+          this.el.addEventListener("click", () => {
+            console.log("click1");
+            //       alert("clicked_start");
+            if (!is_playing) {
+              pic.setAttribute("visible", false);
+              v.play();
+              is_playing = true;
+            } else {
+              v.pause();
+              // location.href =
+              //   "https://youtu.be/XeZcFc1jD9E?si=T34Z7Hyxt43I9meK";
+              is_playing = false;             
+            }
+          });
+        },
+      });
+    </script>
+
+    <script>
+      AFRAME.registerComponent("click-change", {
+        init: function () {
+          this.el.addEventListener("onMouseDown", function (event) {
+            //クリック時の処理
+            //        alert("click-youtube");
+            location.href = "https://youtu.be/XeZcFc1jD9E?si=T34Z7Hyxt43I9meK";
+          });
+        },
+      });
+    </script>
+  -->
+</html>
