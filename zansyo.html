@@ -1,0 +1,198 @@
+<!--MindArを利用して画像トラッキング　クリックにより2動画再生・遷移の振り分け成功 2024/1/5 -->
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+    <script src="https://unpkg.com/aframe-chromakey-material/dist/aframe-chromakey-material.min.js"></script>
+
+    <script>
+      AFRAME.registerComponent("click1", {
+        init: function () {
+          const panel1 = document.querySelector("#panel");
+          const v = document.querySelector("#vid");
+          const v2 = document.querySelector("#vid2");
+          const pic = document.querySelector("#pic");
+          let is_playing = false;
+          this.el.addEventListener("click", () => {
+            console.log("click1");
+            //       alert("clicked_start");
+            if (!is_playing) {
+              pic.setAttribute("visible", false);
+              v.play();
+              //v2.play();
+              is_playing = true;
+            } else {
+              v.pause();
+              // location.href =
+              //   "https://youtu.be/XeZcFc1jD9E?si=T34Z7Hyxt43I9meK";
+              is_playing = false;
+            }
+          });
+        }
+      });
+    </script>
+
+    <script>
+      AFRAME.registerComponent("click2", {
+        init: function () {
+          var pic2 = document.querySelector("#pic2");
+          let is_playing = false;
+          this.el.addEventListener("click", () => {
+            console.log("click2");
+            //       alert("clicked_start");
+            location.href = "https://youtu.be/XeZcFc1jD9E?si=T34Z7Hyxt43I9meK";
+            is_playing = false;
+          });
+        },
+      });
+    </script>
+
+    <link
+      rel="stylesheet"
+      href="https://jirochanf.github.io/card/assets/webar.css"
+    />
+  </head>
+
+  <body>
+    <div class="example-container">
+      <div id="example-scanning-overlay" class="hidden">
+        <div class="inner">
+          <img
+            src="https://cdn.glitch.global/801030b2-c9b0-456b-b230-55a67c0e4d73/meishi2024_omote.jpg?v=1704504583383"
+          />
+          <!-- オーバーレイ画像定義 -->
+          <div class="scanline"></div>
+        </div>
+      </div>
+    </div>
+
+    <!--MindARによる画像トラッキングシーン創出-->
+    <a-scene
+      mindar-image="imageTargetSrc: https://cdn.glitch.global/cbf17ad1-1348-4ae7-b9c3-7207634324f5/targets_2024omote.mind; showStats: false; uiScanning: #example-scanning-overlay;"
+      embedded
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+    >
+      <!--クリックできるようにするための設定　-->
+      <a-camera
+        position="0 0 0"
+        look-controls="enabled: false"
+        cursor="fuse: false; rayOrigin: mouse;"
+        raycaster="near: 10; far: 10000; objects: .clickable"
+      ></a-camera>
+
+      <a-assets>
+        <video
+          id="vid"
+          src="https://cdn.glitch.global/801030b2-c9b0-456b-b230-55a67c0e4d73/glitch76.mp4?#t=0.001"
+          loop="false"
+          webkit-playsinline
+          playsinline
+          crossorigin
+        ></video>
+        <img
+          crossorigin="anonymous"
+          id="picstart"
+          src="https://cdn.glitch.global/801030b2-c9b0-456b-b230-55a67c0e4d73/start.png?v=1702729145576"
+        />
+        <img
+          crossorigin="anonymous"
+          id="zyousen"
+          src="https://cdn.glitch.global/801030b2-c9b0-456b-b230-55a67c0e4d73/zyosensam.png?v=1702729145576"
+        />
+        <img
+          crossorigin="anonymous"
+          id="cros"
+          src="https://cdn.glitch.global/2b6a4eb5-022f-4add-9765-5212abbb4a7b/cros.png?v=1704494490523"
+        />
+        <video
+          id="vid2"
+          src="https://cdn.glitch.global/801030b2-c9b0-456b-b230-55a67c0e4d73/glitch66.mp4?#t=0.001"
+          loop="false"
+          webkit-playsinline
+          playsinline
+          crossorigin
+        ></video>
+      </a-assets>
+
+      <!--MindARのターゲット画像を検出-->
+      <a-entity id="example-target" mindar-image-target="targetIndex: 0">
+        <a-entity visible="true" id="panel" position="0 0 -0.01">
+          <a-image
+            click1
+            id="pic"
+            class="clickable"
+            src="#picstart"
+            position="0 0 -0.01"
+            width="1"
+            height="0.6"
+          ></a-image>
+          <a-video
+            src="#vid"
+            position="0 0 -0.02"
+            rotation="-2 0 0"
+            width="1"
+            height="0.6"
+            material="shader: chromakey; src: #vid; color:0.1 0.9 0.2"
+          ></a-video>
+
+          <a-image
+            click2
+            id="pic2"
+            class="clickable"
+            src="#zyousen"
+            position="1.1 0 -0.01"
+            width="0.9"
+            height="0.55"
+          ></a-image>
+
+          <a-text
+            id="text1"
+            rotation="0 0 0"
+            position="0.8 -0.3 -0.01"
+            value="タップでyoutubeへ"
+            font="https://web-senior-backup.glitch.me/noto-sans-cjk-jp-msdf.json"
+            font-image="https://cdn.glitch.global/2b6a4eb5-022f-4add-9765-5212abbb4a7b/noto-sans-cjk-jp-msdf.png"
+            negate="false"
+            color="white"
+            scale="0.4 0.4 0.4"
+          ></a-text>
+        </a-entity>
+
+        <a-entity visible="true" id="panel2" position="0 0 -0.01">
+          <!-- <a-video
+            src="#vid2"
+            position="0 0.8 -0.02"
+            rotation="-2 0 0"
+            width="0.9"
+            height="0.55"
+            material="shader: chromakey; src: #vid2; color:0.1 0.9 0.2"
+          ></a-video> -->
+          <a-image
+            src="#cros"
+            position="-1.2 0 -0.02"
+            width="0.9"
+            height="0.55"
+            rotation="0 0 0"
+            animation="property: rotation; to: 90 0 0; dur: 2000; easing: easeInOutQuad; loop: true; dir: alternate"
+          ></a-image>
+ 
+          <a-text
+            id="text"
+            rotation="80 0 0"
+            position="-1.4 -0.4 -0.02"
+            value="クロマキー画像です"
+            font="https://web-senior-backup.glitch.me/noto-sans-cjk-jp-msdf.json"
+            font-image="https://cdn.glitch.global/2b6a4eb5-022f-4add-9765-5212abbb4a7b/noto-sans-cjk-jp-msdf.png"
+            negate="false"
+            color="white"
+            scale="0.5 0.5 0.5"
+          ></a-text>
+        </a-entity>
+      </a-entity>
+    </a-scene>
+  </body>
+</html>
