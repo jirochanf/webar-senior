@@ -1,0 +1,321 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #startButton {
+            position: fixed;
+            z-index: 9999;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px 30px;
+            font-size: 18px;
+            background: white;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+    </style>
+
+    <script>
+    // 2つの動画を独立して移動・拡大縮小する機能
+    AFRAME.registerComponent('touch-manipulation', {
+
+        init: function () {
+
+            const scene = this.el;
+            const camera = scene.camera;
+
+            const raycaster = new THREE.Raycaster();
+            const pointer = new THREE.Vector2();
+            const plane = new THREE.Plane();
+            const intersection = new THREE.Vector3();
+
+            const pointers = new Map();
+
+            let selected = null;
+            let startScale = 1;
+            let startDistance = 0;
+
+            const cameraDirection = new THREE.Vector3();
+            const cameraPosition = new THREE.Vector3();
+
+            function getMovableObjects() {
+                return Array.from(
+                    scene.querySelectorAll('.movable')
+                ).map(el => el.object3D);
+            }
+
+            function getTouchPosition(event) {
+                const rect = scene.canvas.getBoundingClientRect();
+
+                pointer.x =
+                    ((event.clientX - rect.left) / rect.width) * 2 - 1;
+
+                pointer.y =
+                    -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                raycaster.setFromCamera(pointer, scene.camera);
+            }
+
+            function getWorldPosition(el) {
+                return el.object3D.getWorldPosition(
+                    new THREE.Vector3()
+                );
+            }
+
+            function getDistance() {
+                const values = Array.from(pointers.values());
+
+                if (values.length < 2) return 0;
+
+                const dx = values[0].x - values[1].x;
+                const dy = values[0].y - values[1].y;
+
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
+            function onPointerDown(event) {
+
+                pointers.set(event.pointerId, {
+                    x: event.clientX,
+                    y: event.clientY
+                });
+
+                if (pointers.size === 1) {
+
+                    getTouchPosition(event);
+
+                    const hits = raycaster.intersectObjects(
+                        getMovableObjects(),
+                        true
+                    );
+
+                    selected = null;
+
+                    if (hits.length > 0) {
+
+                        let object = hits[0].object;
+
+                        while (object && !object.el?.classList.contains('movable')) {
+                            object = object.parent;
+                        }
+
+                        if (object && object.el) {
+                            selected = object.el;
+
+                            const worldPosition =
+                                getWorldPosition(selected);
+
+                            scene.camera.getWorldDirection(
+                                cameraDirection
+                            );
+
+                            plane.setFromNormalAndCoplanarPoint(
+                                cameraDirection,
+                                worldPosition
+                            );
+                        }
+                    }
+                }
+
+                if (pointers.size === 2 && selected) {
+                    startDistance = getDistance();
+                    startScale = selected.object3D.scale.x;
+                }
+            }
+
+            function onPointerMove(event) {
+
+                if (!pointers.has(event.pointerId)) return;
+
+                pointers.set(event.pointerId, {
+                    x: event.clientX,
+                    y: event.clientY
+                });
+
+                if (!selected) return;
+
+                // 2本指：拡大・縮小
+                if (pointers.size === 2) {
+
+                    const distance = getDistance();
+
+                    if (startDistance > 0) {
+
+                        let scale =
+                            startScale * distance / startDistance;
+
+                        scale = Math.max(0.3, Math.min(4, scale));
+
+                        selected.object3D.scale.set(
+                            scale, scale, scale
+                        );
+                    }
+
+                    return;
+                }
+
+                // 1本指：移動
+                if (pointers.size === 1) {
+
+                    getTouchPosition(event);
+
+                    if (raycaster.ray.intersectPlane(
+                        plane,
+                        intersection
+                    )) {
+
+                        const localPosition = intersection.clone();
+
+                        if (selected.object3D.parent) {
+                            selected.object3D.parent.worldToLocal(
+                                localPosition
+                            );
+                        }
+
+                        selected.object3D.position.copy(
+                            localPosition
+                        );
+                    }
+                }
+            }
+
+            function onPointerUp(event) {
+
+                pointers.delete(event.pointerId);
+
+                if (pointers.size === 0) {
+                    selected = null;
+                    startDistance = 0;
+                }
+            }
+
+            scene.addEventListener('renderstart', function () {
+
+                const canvas = scene.canvas;
+
+                canvas.style.touchAction = 'none';
+
+                canvas.addEventListener(
+                    'pointerdown', onPointerDown
+                );
+
+                canvas.addEventListener(
+                    'pointermove', onPointerMove
+                );
+
+                canvas.addEventListener(
+                    'pointerup', onPointerUp
+                );
+
+                canvas.addEventListener(
+                    'pointercancel', onPointerUp
+                );
+
+            });
+        }
+    });
+    </script>
+
+</head>
+
+<body>
+
+    <!-- 再生開始ボタン -->
+    <button id="startButton">動画を再生</button>
+
+    <a-scene touch-manipulation>
+
+        <a-assets>
+
+            <video
+                id="vid1"
+                src="movie.mp4"
+                preload="auto"
+                loop
+                muted
+                playsinline
+                webkit-playsinline>
+            </video>
+
+            <video
+                id="vid2"
+                src="movie2.mp4"
+                preload="auto"
+                loop
+                muted
+                playsinline
+                webkit-playsinline>
+            </video>
+
+        </a-assets>
+
+        <!-- 動画1 -->
+        <a-video
+            src="#vid1"
+            class="movable"
+            position="-1 0 -3"
+            rotation="0 0 0"
+            width="1.5"
+            height="1"
+            scale="1 1 1">
+        </a-video>
+
+        <!-- 動画2 -->
+        <a-video
+            src="#vid2"
+            class="movable"
+            position="1 0 -3"
+            rotation="0 0 0"
+            width="1.5"
+            height="1"
+            scale="1 1 1">
+        </a-video>
+
+        <a-camera id="my_camera"></a-camera>
+
+    </a-scene>
+
+    <script>
+
+        const video1 = document.getElementById('vid1');
+        const video2 = document.getElementById('vid2');
+        const startButton = document.getElementById('startButton');
+
+        // ボタンを押すと2つ同時に再生
+        startButton.addEventListener('click', async function () {
+
+            video1.muted = true;
+            video2.muted = true;
+
+            try {
+                await Promise.all([
+                    video1.play(),
+                    video2.play()
+                ]);
+
+                startButton.style.display = 'none';
+
+            } catch (error) {
+                console.log('動画再生エラー:', error);
+            }
+
+        });
+
+    </script>
+
+</body>
+</html>
